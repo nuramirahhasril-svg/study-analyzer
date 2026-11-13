@@ -11,5 +11,11 @@ for i in $(seq 1 30); do
     sleep 2
 done
 
-# 2. Jalankan web server Apache.
+# 2. Pastikan Apache hanya memakai SATU modul MPM, yaitu mpm_prefork (yang dibutuhkan PHP).
+#    Di Railway modul mpm_event kadang ikut aktif, lalu Apache gagal start dengan error
+#    "AH00534: More than one MPM loaded". Karena itu dimatikan di sini, setiap kali server nyala.
+rm -f /etc/apache2/mods-enabled/mpm_event.* /etc/apache2/mods-enabled/mpm_worker.*
+a2enmod -q mpm_prefork
+
+# 3. Jalankan web server Apache.
 exec apache2-foreground
