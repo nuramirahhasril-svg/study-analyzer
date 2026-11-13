@@ -1,0 +1,145 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
+
+:root {
+    --ink: #17161b;
+    --muted: #87918e;
+    --line: #e3e9e4;
+    --black: #000000;
+    --green: #c6ed58;
+    --canvas: #f7f8f5;
+    --white: #fff;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 24px;
+    background: var(--canvas);
+    color: var(--ink);
+    font-family: "DM Sans", sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+.container {
+    width: min(100%, 430px);
+}
+
+.form-box {
+    width: 100%;
+    padding: 40px;
+    background: var(--white);
+    border: 1px solid #eef0ec;
+    border-radius: 16px;
+    box-shadow: 0 14px 36px rgb(40 52 44 / 8%);
+    display: none;
+}
+
+.form-box.active {
+    display: block;
+}
+
+h2 {
+    margin-bottom: 8px;
+    color: var(--ink);
+    font-family: Manrope, sans-serif;
+    font-size: 30px;
+    font-weight: 800;
+    text-align: center;
+}
+
+input {
+    width: 100%;
+    padding: 12px 14px;
+    background: #f7faf6;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    outline: none;
+    color: var(--ink);
+    font-size: 14px;
+    margin-bottom: 14px;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+input:focus {
+    border-color: var(--black);
+    box-shadow: 0 0 0 3px rgb(62 47 89 / 12%);
+}
+ 
+button {
+    width: 100%;
+    min-height: 42px;
+    padding: 0 17px;
+    background: var(--black);
+    border: 1px solid transparent;
+    border-radius: 7px;
+    cursor: pointer;
+    color: var(--white);
+    font-size: 12px;
+    font-weight: 700;
+    margin: 6px 0 20px;
+    transition: background 150ms ease, transform 150ms ease;
+}
+
+button:hover {
+    background: #111111;
+}
+
+button:active {
+    transform: translateY(1px);
+}       
+
+p {
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+
+p a {
+    color: var(--black);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+p a:hover {
+    text-decoration: underline;
+}
+
+h1 {
+    font-size: 50px;
+}
+
+span {
+    color: var(--black);
+}
+
+.box p{
+    font-size: 22px;
+}
+
+.box button{
+    display: block;
+    width: 300px;
+    margin: 0 auto;
+}
+
+.error-message {
+    margin: 0 0 16px;
+    color: #b42318;
+    font-size: 13px;
+    text-align: center;
+}
+
+@media (max-width: 480px) {
+    .form-box {
+        padding: 32px 24px;
+    }
+}

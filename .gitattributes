@@ -1,0 +1,4 @@
+# File yang dijalankan di server Linux (Railway) harus memakai akhir baris LF,
+# walaupun di-commit dari Windows.
+*.sh text eol=lf
+Dockerfile text eol=lf

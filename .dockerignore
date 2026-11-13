@@ -1,0 +1,5 @@
+# File yang tidak ikut dimasukkan ke server saat build Docker (Railway)
+.git
+.vscode
+**/node_modules
+**/.DS_Store

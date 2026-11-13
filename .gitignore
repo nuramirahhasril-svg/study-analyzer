@@ -1,0 +1,9 @@
+# Dependency Node.js (dibuat ulang dengan "npm install")
+node_modules/
+
+# File bawaan sistem operasi
+.DS_Store
+Thumbs.db
+
+# File rahasia (password, API key)
+.env
