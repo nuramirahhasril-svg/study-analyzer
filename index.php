@@ -7,6 +7,11 @@
  */
 require_once __DIR__ . '/includes/init.php';
 
+// Sudah login (session masih berlaku)? Langsung ke dashboard, jangan tampilkan form login lagi.
+if (isLoggedIn()) {
+    redirect('home.php');
+}
+
 // Ambil pesan error (kalau ada), lalu hapus supaya tidak muncul lagi saat refresh.
 $loginError = $_SESSION['login_error'] ?? '';
 $registerError = $_SESSION['register_error'] ?? '';

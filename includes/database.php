@@ -2,20 +2,24 @@
 /**
  * KONEKSI DATABASE
  *
- * Di laptop (XAMPP): pakai pengaturan di bagian 1.
- * Di Railway: isi variabel MYSQL_URL di service aplikasi, pengaturan di bagian 1 otomatis diganti.
+ * - Di XAMPP (komputer sendiri): dipakai setting di bawah (user "root" tanpa password).
+ * - Di hosting (misalnya InfinityFree): buat file includes/db_hosting.php berisi
+ *   4 variabel yang sama dengan data MySQL dari hosting. Kalau file itu ada,
+ *   isinya otomatis menggantikan setting XAMPP di bawah.
+ * - Di Railway: isi variabel MYSQL_URL di service aplikasi (contoh: ${{MySQL.MYSQL_URL}}).
+ *   Kalau variabel itu ada, setting di atas otomatis diganti.
  */
-
-// ---- 1. Pengaturan XAMPP (ubah kalau setting MySQL kamu berbeda) ----
-// Default XAMPP: user "root" tanpa password.
 $dbHost = 'localhost';
 $dbPort = 3306;
 $dbUser = 'root';
 $dbPassword = '';
 $dbName = 'study_analyzer';
 
-// ---- 2. Pengaturan Railway (hanya dipakai kalau variabel MYSQL_URL ada) ----
-// Format MYSQL_URL: mysql://user:password@host:port/nama_database
+if (is_file(__DIR__ . '/db_hosting.php')) {
+    require __DIR__ . '/db_hosting.php';
+}
+
+// Railway. Format MYSQL_URL: mysql://user:password@host:port/nama_database
 $databaseUrl = getenv('MYSQL_URL');
 if ($databaseUrl) {
     $url = parse_url($databaseUrl);
@@ -26,22 +30,21 @@ if ($databaseUrl) {
     $dbName = ltrim($url['path'] ?? '', '/') ?: $dbName;
 }
 
-// Zona waktu untuk NOW() dan CURDATE() di MySQL, misalnya "+07:00" untuk WIB.
-// Di XAMPP biarkan kosong: MySQL sudah memakai jam laptop.
-// Di Railway sudah diisi otomatis lewat Dockerfile (MySQL di Railway memakai jam UTC).
-$dbTimezone = getenv('DB_TIMEZONE');
+// Zona waktu untuk NOW() / CURDATE() di MySQL. "Hari ini", streak, dan target harian
+// dihitung pakai jam MySQL, jadi harus jam Malaysia (UTC+8), bukan jam server hosting.
+// Di Railway bisa diganti lewat variabel DB_TIMEZONE.
+$dbTimeZone = getenv('DB_TIMEZONE') ?: ($dbTimeZone ?? '+08:00');
 
-// ---- 3. Sambungkan ke database ----
 // Kalau ada query yang error, PHP akan melempar exception (bisa ditangkap pakai try/catch).
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 try {
     $conn = new mysqli($dbHost, $dbUser, $dbPassword, $dbName, $dbPort);
     $conn->set_charset('utf8mb4');
-
-    if ($dbTimezone) {
-        $conn->query("SET time_zone = '" . $conn->real_escape_string($dbTimezone) . "'");
-    }
+    $setZone = $conn->prepare('SET time_zone = ?');
+    $setZone->bind_param('s', $dbTimeZone);
+    $setZone->execute();
+    $setZone->close();
 } catch (mysqli_sql_exception $e) {
     error_log('Database Error: ' . $e->getMessage());
 

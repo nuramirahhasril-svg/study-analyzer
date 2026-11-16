@@ -3,3 +3,6 @@
 .vscode
 **/node_modules
 **/.DS_Store
+mobile
+storage/sessions/*
+includes/db_hosting.php

@@ -15,6 +15,56 @@ const suggestions = [
 // Berapa banyak pesan terakhir yang ikut dikirim ke AI (supaya tidak terlalu panjang).
 const MAX_HISTORY_MESSAGES = 20;
 
+// Riwayat chat disimpan di perangkat (localStorage), maksimal sekian percakapan.
+const STORAGE_PREFIX = 'studycoach.chats.v1';
+const MAX_SAVED_CHATS = 50;
+
+/** Website mengirim ?u=<id user> supaya riwayat tiap akun terpisah di browser yang sama. */
+function getStorageKey() {
+  const user = new URLSearchParams(window.location.search).get('u');
+  return user ? `${STORAGE_PREFIX}.${user}` : STORAGE_PREFIX;
+}
+
+function loadChats() {
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(getStorageKey()) ?? '[]');
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return parsed
+      .filter((chat) => chat && typeof chat.id === 'string' && Array.isArray(chat.messages))
+      .sort((a, b) => b.updatedAt - a.updatedAt);
+  } catch {
+    return [];
+  }
+}
+
+function saveChats(chats) {
+  try {
+    window.localStorage.setItem(getStorageKey(), JSON.stringify(chats.slice(0, MAX_SAVED_CHATS)));
+  } catch {
+    // Penyimpanan penuh / diblokir: chat tetap jalan, hanya tidak tersimpan.
+  }
+}
+
+function makeChatId() {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function makeTitle(messages) {
+  const first = messages.find((message) => message.isUser)?.content.trim() ?? 'New chat';
+  return first.length > 48 ? `${first.slice(0, 48).trimEnd()}…` : first;
+}
+
+function formatChatDate(timestamp) {
+  const date = new Date(timestamp);
+  const now = new Date();
+  if (date.toDateString() === now.toDateString()) {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+  return date.toLocaleDateString([], { day: 'numeric', month: 'short', year: date.getFullYear() === now.getFullYear() ? undefined : 'numeric' });
+}
+
 /**
  * Ubah daftar pesan di layar menjadi format percakapan untuk Puter:
  * [{ role: 'user', content: '...' }, { role: 'assistant', content: '...' }, ...]
@@ -66,7 +116,14 @@ function getResponseText(response) {
 }
 
 function App() {
-  const [messages, setMessages] = useState([greeting]);
+  // Semua percakapan tersimpan, terbaru di atas.
+  const [chats, setChats] = useState(loadChats);
+  // Chat yang sedang dibuka (null = chat baru yang belum ada pesannya).
+  // Saat halaman dibuka, chat terakhir langsung ditampilkan lagi.
+  const [activeChatId, setActiveChatId] = useState(() => chats[0]?.id ?? null);
+  const [showHistory, setShowHistory] = useState(false);
+  const activeChat = chats.find((chat) => chat.id === activeChatId);
+  const messages = [greeting, ...(activeChat?.messages ?? [])];
   const [inputValue, setInputValue] = useState('');
   const [aiReady, setAiReady] = useState(
     () => typeof window.puter?.ai?.chat === 'function',
@@ -99,8 +156,31 @@ function App() {
   }, [aiReady]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-  }, [messages, isLoading]);
+    saveChats(chats);
+  }, [chats]);
+
+  const messageCount = messages.length;
+  useEffect(() => {
+    if (!showHistory) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+  }, [activeChatId, messageCount, isLoading, showHistory]);
+
+  /** Tambahkan pesan ke chat tertentu dan pindahkan chat itu ke paling atas. */
+  const appendToChat = (chatId, newMessage) => {
+    setChats((current) => {
+      const existing = current.find((chat) => chat.id === chatId);
+      const chatMessages = [...(existing?.messages ?? []), newMessage];
+      const updated = {
+        id: chatId,
+        title: existing?.title ?? makeTitle(chatMessages),
+        createdAt: existing?.createdAt ?? Date.now(),
+        updatedAt: Date.now(),
+        messages: chatMessages,
+      };
+      return [updated, ...current.filter((chat) => chat.id !== chatId)];
+    });
+  };
 
   const sendMessage = async (submittedMessage = inputValue) => {
     const message = submittedMessage.trim();
@@ -108,8 +188,11 @@ function App() {
       return;
     }
 
-    const conversation = [...messages, { content: message, isUser: true }];
-    setMessages(conversation);
+    const chatId = activeChatId ?? makeChatId();
+    const userMessage = { content: message, isUser: true };
+    const conversation = [...messages, userMessage];
+    setActiveChatId(chatId);
+    appendToChat(chatId, userMessage);
     setInputValue('');
     setError('');
     setIsLoading(true);
@@ -121,7 +204,7 @@ function App() {
       if (!reply) {
         throw new Error('The AI study coach returned an empty response. Please try again.');
       }
-      setMessages((current) => [...current, { content: reply, isUser: false }]);
+      appendToChat(chatId, { content: reply, isUser: false });
     } catch (requestError) {
       setError(getErrorMessage(requestError));
     } finally {
@@ -145,9 +228,29 @@ function App() {
     if (isLoading) {
       return;
     }
-    setMessages([greeting]);
+    setActiveChatId(null);
+    setShowHistory(false);
     setInputValue('');
     setError('');
+  };
+
+  const openChat = (chatId) => {
+    if (isLoading) {
+      return;
+    }
+    setActiveChatId(chatId);
+    setShowHistory(false);
+    setError('');
+  };
+
+  const deleteChat = (chat) => {
+    if (isLoading || !window.confirm(`Delete "${chat.title}"? This can't be undone.`)) {
+      return;
+    }
+    setChats((current) => current.filter((item) => item.id !== chat.id));
+    if (chat.id === activeChatId) {
+      setActiveChatId(null);
+    }
   };
 
   return (
@@ -156,13 +259,53 @@ function App() {
         <div className="chat-avatar" aria-hidden="true">✧</div>
         <div className="chat-header-copy">
           <p className="eyebrow">YOUR STUDY COACH</p>
-          <h1>What would you like to learn?</h1>
+          <h1>{showHistory ? 'Chat history' : activeChat?.title ?? 'What would you like to learn?'}</h1>
         </div>
-        <button className="new-chat-button" type="button" onClick={startNewChat} disabled={isLoading}>
-          New chat
-        </button>
+        <div className="chat-header-actions">
+          <button
+            className="history-button"
+            type="button"
+            onClick={() => setShowHistory((open) => !open)}
+            disabled={isLoading}
+            aria-pressed={showHistory}
+          >
+            {showHistory ? 'Back to chat' : `History${chats.length ? ` (${chats.length})` : ''}`}
+          </button>
+          <button className="new-chat-button" type="button" onClick={startNewChat} disabled={isLoading}>
+            New chat
+          </button>
+        </div>
       </header>
 
+      {showHistory ? (
+        <section className="chat-history" aria-label="Chat history">
+          {chats.length === 0 ? (
+            <p className="history-empty">No saved chats yet. Your conversations will show up here.</p>
+          ) : (
+            <ul>
+              {chats.map((chat) => (
+                <li key={chat.id} className={chat.id === activeChatId ? 'active' : undefined}>
+                  <button className="history-open" type="button" onClick={() => openChat(chat.id)}>
+                    <span className="history-title">{chat.title}</span>
+                    <span className="history-meta">
+                      {formatChatDate(chat.updatedAt)} · {chat.messages.length} message{chat.messages.length === 1 ? '' : 's'}
+                    </span>
+                  </button>
+                  <button
+                    className="history-delete"
+                    type="button"
+                    onClick={() => deleteChat(chat)}
+                    aria-label={`Delete chat: ${chat.title}`}
+                    title="Delete chat"
+                  >
+                    ×
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ) : (
       <section className="chat-messages" aria-label="Chat messages" aria-live="polite">
         {messages.map((message, index) => (
           <article
@@ -181,8 +324,9 @@ function App() {
         )}
         <div ref={messagesEndRef} />
       </section>
+      )}
 
-      {messages.length === 1 && (
+      {!showHistory && messages.length === 1 && (
         <div className="chat-suggestions" aria-label="Suggested questions">
           {suggestions.map((suggestion) => (
             <button
@@ -223,7 +367,7 @@ function App() {
         {error || (!aiReady ? 'Connecting to the AI study coach…' : '')}
       </p>
       <p className="privacy-note">
-        Powered by Puter.js. Sign in when prompted. Messages are sent to Puter for AI processing and aren’t saved to your study account. Don’t share sensitive information.
+        Powered by Puter.js. Sign in when prompted. Messages are sent to Puter for AI processing. Chat history is saved only on this device, not in your study account. Don’t share sensitive information.
       </p>
     </main>
   );

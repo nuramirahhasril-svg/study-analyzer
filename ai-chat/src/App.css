@@ -55,8 +55,127 @@
   font-weight: 700;
 }
 
-.new-chat-button {
+.chat-header-copy h1 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-header-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 6px;
   margin-left: auto;
+}
+
+.history-button {
+  padding: 8px 11px;
+  border: 1px solid #fff;
+  border-radius: 8px;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.history-button:hover:not(:disabled),
+.history-button[aria-pressed="true"] {
+  border-color: #dceb7d;
+  color: #dceb7d;
+}
+
+.history-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.chat-history {
+  min-height: 270px;
+  flex: 1;
+  padding: 16px 24px;
+  overflow-y: auto;
+  background: #fff;
+}
+
+.chat-history ul {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chat-history li {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid #373634;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.chat-history li.active {
+  background: #f4f9d8;
+  border-left: 4px solid #dceb7d;
+}
+
+.history-open {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+  padding: 11px 13px;
+  border: 0;
+  background: transparent;
+  color: #000;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.history-open:hover {
+  background: #dceb7d;
+}
+
+.history-title {
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-meta {
+  color: #373634;
+  font-size: 10px;
+}
+
+.history-delete {
+  flex: 0 0 auto;
+  width: 42px;
+  border: 0;
+  border-left: 1px solid #373634;
+  background: transparent;
+  color: #373634;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.history-delete:hover {
+  background: #373634;
+  color: #fff;
+}
+
+.history-empty {
+  margin: 40px 0;
+  color: #373634;
+  font-size: 13px;
+  text-align: center;
+}
+
+.new-chat-button {
   padding: 8px 11px;
   border: 1px solid #dceb7d;
   border-radius: 8px;
@@ -252,8 +371,22 @@
   }
 
   .chat-header,
-  .chat-messages {
+  .chat-messages,
+  .chat-history {
     padding: 16px;
+  }
+
+  .chat-header {
+    gap: 10px;
+  }
+
+  .chat-avatar {
+    display: none;
+  }
+
+  .history-button,
+  .new-chat-button {
+    padding: 7px 9px;
   }
 
   .chat-header h1 {

@@ -67,3 +67,17 @@ CREATE TABLE IF NOT EXISTS study_plans (
     CONSTRAINT study_plans_user_fk
         FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Token login untuk aplikasi Android (api/mobile/).
+-- Yang disimpan hanya hash SHA-256 dari token, bukan token aslinya.
+CREATE TABLE IF NOT EXISTS api_tokens (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    user_id INT UNSIGNED NOT NULL,
+    token_hash CHAR(64) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_used_at TIMESTAMP NULL DEFAULT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY api_tokens_hash_unique (token_hash),
+    CONSTRAINT api_tokens_user_fk
+        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

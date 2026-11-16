@@ -20,11 +20,16 @@ RUN sed -i 's/Listen 80/Listen ${PORT}/' /etc/apache2/ports.conf \
 COPY docker/apache.conf /etc/apache2/conf-enabled/study-analyzer.conf
 
 # Zona waktu untuk jam MySQL (NOW, CURDATE). MySQL di Railway memakai UTC.
-# +07:00 = WIB, +08:00 = WITA, +09:00 = WIT. Bisa diganti lewat Variables di Railway.
-ENV DB_TIMEZONE=+07:00
+# +08:00 = jam Malaysia. Bisa diganti lewat Variables di Railway.
+ENV DB_TIMEZONE=+08:00
 
 # Salin seluruh project ke folder web Apache.
 COPY . /var/www/html/
+
+# Folder session (login 30 hari) harus bisa ditulis oleh Apache.
+RUN mkdir -p /var/www/html/storage/sessions \
+ && chown -R www-data:www-data /var/www/html/storage \
+ && chmod 700 /var/www/html/storage/sessions
 
 # Saat server nyala: buat tabel database (kalau belum ada), lalu jalankan Apache.
 CMD ["sh", "/var/www/html/docker/start.sh"]

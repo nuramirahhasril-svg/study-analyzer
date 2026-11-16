@@ -18,7 +18,7 @@ require __DIR__ . '/includes/header.php';
 <section class="chat-page">
     <iframe
         class="chat-app-frame"
-        src="<?= e(asset('ai-chat/dist/index.html')) ?>"
+        src="<?= e(asset('ai-chat/dist/index.html') . '&u=' . currentUserId()) ?>"
         title="AI study coach"
         loading="eager"
     ></iframe>

@@ -1,0 +1,27 @@
+name: study_analyzer
+description: Study Analyzer - native Android app that talks to the PHP backend (api/mobile/).
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.6.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_inappwebview: 6.2.0-beta.3
+  material_ui: ^1.11.0
+  path_provider: ^2.1.6
+  table_calendar: ^3.1.2
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  # Halaman AI chat (hasil build ai-chat/dist) dibawa di dalam aplikasi,
+  # lalu dibuka lewat http://localhost (lihat lib/config.dart).
+  assets:
+    - assets/ai-chat/
+    - assets/ai-chat/assets/

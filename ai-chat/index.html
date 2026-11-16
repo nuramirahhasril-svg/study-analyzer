@@ -11,6 +11,21 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    <!--
+      Puter.js memakai crypto.randomUUID(), yang hanya ada di "secure context"
+      (HTTPS atau localhost). Saat dibuka lewat IP (http://192.168.x.x, dipakai
+      aplikasi Android), fungsi itu tidak ada dan login Puter gagal ("canceled").
+      Polyfill ini membuat penggantinya dengan crypto.getRandomValues().
+    -->
+    <script>
+      if (window.crypto && typeof crypto.randomUUID !== 'function') {
+        crypto.randomUUID = function () {
+          return '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, function (c) {
+            return (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16);
+          });
+        };
+      }
+    </script>
     <script async src="https://js.puter.com/v2/"></script>
   </head>
   <body>

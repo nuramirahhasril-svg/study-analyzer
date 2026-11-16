@@ -8,7 +8,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-# dist sengaja TIDAK di-ignore: hasil build dipakai langsung oleh chat.php
+# dist TIDAK di-ignore: chat.php memakai ai-chat/dist (hasil build)
 dist-ssr
 *.local
 

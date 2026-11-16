@@ -7,3 +7,12 @@ Thumbs.db
 
 # File rahasia (password, API key)
 .env
+includes/db_hosting.php
+
+# Data login (session) dari XAMPP
+storage/sessions/*
+
+# Hasil build Flutter
+mobile/**/build/
+mobile/**/.dart_tool/
+mobile/**/.widget_preview/

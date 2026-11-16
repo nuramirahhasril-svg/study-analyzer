@@ -66,15 +66,11 @@ study_analyzer/
 │   └── images/
 │
 ├── database/
-│   ├── database.sql     ← Struktur tabel (import lewat phpMyAdmin)
-│   └── install.php      ← Membuat tabel otomatis di Railway (tidak dipakai di XAMPP)
+│   └── database.sql     ← Struktur tabel (import lewat phpMyAdmin)
 │
-├── ai-chat/             ← Project React untuk AI chat (terpisah)
-│   ├── src/App.jsx      ← Kode chat
-│   └── dist/            ← Hasil build (ini yang ditampilkan chat.php)
-│
-├── Dockerfile           ← Resep server untuk Railway (tidak dipakai di XAMPP)
-└── docker/              ← Pengaturan server Railway: start.sh, php.ini, apache.conf
+└── ai-chat/             ← Project React untuk AI chat (terpisah)
+    ├── src/App.jsx      ← Kode chat
+    └── dist/            ← Hasil build (ini yang ditampilkan chat.php)
 ```
 
 ### Pola setiap halaman dashboard
@@ -142,48 +138,26 @@ npm run build    # WAJIB setelah selesai mengubah kode → memperbarui folder di
 
 `chat.php` menampilkan isi `ai-chat/dist/`, jadi perubahan baru terlihat di aplikasi setelah `npm run build`.
 
-Folder `dist/` **ikut di-commit ke GitHub**, karena Railway tidak menjalankan `npm run build`.
+---
+
+## Deploy ke Railway (versi web)
+
+Project ini sudah ada `Dockerfile`, jadi Railway otomatis memakai PHP 8.2 + Apache.
+
+1. Push project ke GitHub, lalu di Railway: **New Project → Deploy from GitHub repo**.
+2. Tambah database: **+ New → Database → MySQL**.
+3. Di service aplikasi → **Variables**, tambah `MYSQL_URL` = `${{MySQL.MYSQL_URL}}`.
+4. **Settings → Networking → Generate Domain** untuk dapat alamat `https://xxx.up.railway.app`.
+
+Tabel database dibuat otomatis setiap server nyala (`database/install.php`). Zona waktu default
+`+08:00` (Malaysia), bisa diganti lewat variabel `DB_TIMEZONE`. Folder `mobile/` tidak ikut di-deploy.
+
+Setelah dapat alamat Railway, isi alamat itu di `mobile/webview_app/lib/main.dart` (`siteUrl`)
+dan `mobile/native_app/lib/config.dart` (`serverUrl`) supaya aplikasi Android memakai server yang sama.
 
 ---
 
-## Upload ke GitHub
+## Aplikasi Android
 
-Buat repository baru di GitHub (pilih **Private**), lalu dari folder project:
-
-```bash
-git init
-git add .
-git commit -m "Study Analyzer"
-git branch -M main
-git remote add origin https://github.com/USERNAME/NAMA-REPO.git
-git push -u origin main
-```
-
-`node_modules/` tidak ikut ter-upload (sudah diatur di `.gitignore`).
-
----
-
-## Deploy ke Railway
-
-Railway membaca `Dockerfile` di project ini, jadi tidak perlu setting build apa pun.
-
-1. Di [railway.com](https://railway.com): **New Project → Deploy from GitHub repo**, pilih repo ini.
-2. Di project yang sama: **+ Create → Database → MySQL**.
-3. Buka service aplikasi (bukan MySQL) → tab **Variables** → tambahkan:
-
-   | Nama          | Isi                       |
-   |---------------|---------------------------|
-   | `MYSQL_URL`   | `${{MySQL.MYSQL_URL}}`    |
-
-   (`MySQL` = nama service database-nya. Kalau namanya diganti, sesuaikan.)
-4. Tab **Settings → Networking → Generate Domain** untuk mendapatkan alamat web.
-5. Buka alamat tersebut, daftar akun, lalu login.
-
-Tidak perlu import `database.sql`: tabel dibuat otomatis oleh `database/install.php` setiap kali server dinyalakan
-(tabel yang sudah ada tidak diubah, data tetap aman).
-
-**Zona waktu.** MySQL di Railway memakai jam UTC, jadi aplikasi mengatur jamnya sendiri lewat variabel `DB_TIMEZONE`
-(default `+07:00` / WIB, diatur di `Dockerfile`). Kalau pengguna ada di WITA atau WIT, tambahkan variabel
-`DB_TIMEZONE` = `+08:00` (WITA) atau `+09:00` (WIT) di tab **Variables**.
-
-Setiap kali ada `git push` ke branch `main`, Railway otomatis deploy ulang.
+Folder `mobile/` berisi dua aplikasi Flutter (versi WebView dan versi native) yang memakai server ini.
+API khusus aplikasi ada di `api/mobile/`. Cara build: lihat [`mobile/README.md`](mobile/README.md).
