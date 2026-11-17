@@ -1394,7 +1394,7 @@ h2 {
 }
 
 .button-primary {
-    background: var(--green);
+    background: #000;
     color: var(--white);
 }
 
@@ -1411,7 +1411,7 @@ h2 {
 }
 
 .button-primary:hover:not(:disabled) {
-    background: var(--green-dark);
+    background: #373634;
 }
 
 .button-secondary {
